@@ -1,12 +1,18 @@
 import { TypeOrmModuleOptions } from '@nestjs/typeorm';
+import { ConfigService } from '@nestjs/config';
 
-export const typeOrmConfig: TypeOrmModuleOptions = {
-  type: 'postgres',
-  host: process.env.DB_HOST,
-  port: parseInt(process.env.DB_PORT, 10),
-  username: process.env.DB_USERNAME,
-  password: process.env.DB_PASSWORD,
-  database: process.env.DB_NAME,
-  entities: [__dirname + '/../**/*.entity.{js,ts}'],
-  synchronize: true, // 개발 환경에서만 사용
+export const typeOrmConfigAsync = {
+  useFactory: async (
+    configService: ConfigService,
+  ): Promise<TypeOrmModuleOptions> => ({
+    type: 'postgres',
+    host: configService.get('DB_HOST'),
+    port: configService.get('DB_PORT'),
+    username: configService.get('DB_USERNAME'),
+    password: configService.get('DB_PASSWORD'),
+    database: configService.get('DB_NAME'),
+    entities: [__dirname + '/../**/*.entity.{js,ts}'],
+    synchronize: configService.get('STAGE') === 'dev', // 예를 들어, 'STAGE' 환경 변수를 사용하여 개발 환경인지 확인
+  }),
+  inject: [ConfigService],
 };
