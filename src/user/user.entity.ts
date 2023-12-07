@@ -3,7 +3,7 @@ import * as bcrypt from 'bcrypt';
 
 @Entity()
 export class User extends BaseEntity {
-  @PrimaryGeneratedColumn()
+  @PrimaryGeneratedColumn({ name: 'USER_SEQ' })
   seq: number;
 
   @Column({ unique: true })

@@ -5,12 +5,17 @@ import {
   Get,
   Param,
   Delete,
-  Put,
   Query,
   ValidationPipe,
   HttpCode,
   HttpStatus,
+  Patch,
+  UseGuards,
+  Req,
+  UnauthorizedException,
+  ParseIntPipe,
 } from '@nestjs/common';
+import { AuthGuard } from '@nestjs/passport';
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -35,21 +40,24 @@ export class UserController {
     return this.userService.getUsers(filterDto);
   }
 
-  @Get('/:id')
-  getUserById(@Param('id') id: string) {
-    return this.userService.findUserById(id);
+  @Get('/:userSeq')
+  getUserByUserSeq(@Param('userSeq') userSeq: number) {
+    return this.userService.findUserByUserSeq(userSeq);
+  }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Patch('/:userSeq')
+  async updateUser(
+    @Req() req,
+    @Param('userSeq', ParseIntPipe) userSeq: number, // ParseIntPipe를 추가하여 userSeq가 숫자임을 보장
+    @Body(ValidationPipe) updateUserDto: UpdateUserDto,
+  ) {
+    const currentUserSeq = req.user.seq;
+    return this.userService.updateUser(userSeq, updateUserDto, currentUserSeq);
   }
 
   @Delete('/:id')
   deleteUser(@Param('id') id: string) {
     return this.userService.deleteUser(id);
-  }
-
-  @Put('/:id')
-  updateUser(
-    @Param('id') id: string,
-    @Body(ValidationPipe) updateUserDto: UpdateUserDto,
-  ) {
-    return this.userService.updateUser(id, updateUserDto);
   }
 }

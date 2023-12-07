@@ -3,6 +3,7 @@ import {
   NotFoundException,
   ConflictException,
   BadRequestException,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from './user.entity';
@@ -66,7 +67,20 @@ export class UserService {
   }
 
   async findUserById(userId: string): Promise<User | undefined> {
-    return this.userRepository.findOne({ where: { userId } });
+    const user = await this.userRepository.findOne({ where: { userId } });
+    delete user.password;
+    return user;
+  }
+
+  async findUserByUserSeq(userSeq: number): Promise<User> {
+    const user = await this.userRepository.findOne({ where: { seq: userSeq } });
+
+    if (!user) {
+      throw new NotFoundException(`User with sequence ${userSeq} not found`);
+    }
+
+    delete user.password;
+    return user;
   }
 
   async getUsers(filterDto: GetUsersFilterDto): Promise<User[]> {
@@ -82,7 +96,33 @@ export class UserService {
     }
 
     const users = await query.getMany();
+
+    users.forEach((user) => delete user.password);
+
     return users;
+  }
+
+  async updateUser(
+    userSeq: number,
+    updateUserDto: UpdateUserDto,
+    currentUserSeq: number,
+  ): Promise<User> {
+    if (userSeq !== currentUserSeq) {
+      throw new UnauthorizedException('You can only update your own account');
+    }
+    const user = await this.findUserByUserSeq(userSeq);
+
+    if (!user) {
+      throw new NotFoundException(`User with sequence "${userSeq}" not found`);
+    }
+
+    const { username } = updateUserDto;
+    if (username) {
+      user.username = username;
+    }
+
+    await this.userRepository.save(user);
+    return user;
   }
 
   async deleteUser(id: string): Promise<void> {
@@ -91,25 +131,5 @@ export class UserService {
     if (result.affected === 0) {
       throw new NotFoundException(`User with ID "${id}" not found`);
     }
-  }
-
-  async updateUser(id: string, updateUserDto: UpdateUserDto): Promise<User> {
-    const user = await this.findUserById(id);
-
-    if (!user) {
-      throw new NotFoundException(`User with ID "${id}" not found`);
-    }
-
-    const { username, password } = updateUserDto;
-    if (username) {
-      user.username = username;
-    }
-    if (password) {
-      const salt = await bcrypt.genSalt();
-      user.password = await bcrypt.hash(password, salt);
-    }
-
-    await this.userRepository.save(user);
-    return user;
   }
 }
