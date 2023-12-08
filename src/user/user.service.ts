@@ -104,8 +104,8 @@ export class UserService {
 
   async updateUser(
     userSeq: number,
-    updateUserDto: UpdateUserDto,
     currentUserSeq: number,
+    updateUserDto: UpdateUserDto,
   ): Promise<User> {
     if (userSeq !== currentUserSeq) {
       throw new UnauthorizedException('You can only update your own account');
@@ -125,11 +125,14 @@ export class UserService {
     return user;
   }
 
-  async deleteUser(id: string): Promise<void> {
-    const result = await this.userRepository.delete(id);
+  async deleteUser(userSeq: number, currentUserSeq: number): Promise<void> {
+    if (userSeq !== currentUserSeq) {
+      throw new UnauthorizedException('You can only update your own account');
+    }
+    const result = await this.userRepository.delete(userSeq);
 
     if (result.affected === 0) {
-      throw new NotFoundException(`User with ID "${id}" not found`);
+      throw new NotFoundException(`User with sequence ${userSeq} not found`);
     }
   }
 }

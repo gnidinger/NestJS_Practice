@@ -12,7 +12,6 @@ import {
   Patch,
   UseGuards,
   Req,
-  UnauthorizedException,
   ParseIntPipe,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
@@ -53,11 +52,13 @@ export class UserController {
     @Body(ValidationPipe) updateUserDto: UpdateUserDto,
   ) {
     const currentUserSeq = req.user.seq;
-    return this.userService.updateUser(userSeq, updateUserDto, currentUserSeq);
+    return this.userService.updateUser(userSeq, currentUserSeq, updateUserDto);
   }
 
-  @Delete('/:id')
-  deleteUser(@Param('id') id: string) {
-    return this.userService.deleteUser(id);
+  @UseGuards(AuthGuard('jwt'))
+  @Delete('/:userSeq')
+  deleteUser(@Req() req, @Param('userSeq', ParseIntPipe) userSeq: number) {
+    const currentUserSeq = req.user.seq;
+    return this.userService.deleteUser(userSeq, currentUserSeq);
   }
 }
