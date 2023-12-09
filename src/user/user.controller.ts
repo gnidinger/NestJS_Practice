@@ -19,6 +19,9 @@ import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { GetUsersFilterDto } from './dto/get-users-filter.dto';
+import { UserResponseDto } from './dto/user-response.dto';
+import { UserUpdateResponseDto } from './dto/user-update-response.dto';
+import { UserDeleteResponseDto } from './dto/user-delete-response.dto';
 
 @Controller('/api/user')
 export class UserController {
@@ -28,19 +31,21 @@ export class UserController {
   @HttpCode(HttpStatus.CREATED) // HTTP 201 상태 코드를 반환
   async signUp(
     @Body(ValidationPipe) createUserDto: CreateUserDto,
-  ): Promise<{ message: string; userId: string }> {
-    // 성공 메시지와 사용자 ID를 반환하도록 타입을 명시
-    const user = await this.userService.createUser(createUserDto);
-    return { message: 'User created successfully', userId: user.userId }; // 사용자 생성 성공 메시지와 함께 사용자 ID를 반환
+  ): Promise<UserResponseDto> {
+    return this.userService.createUser(createUserDto);
   }
 
   @Get()
-  getUsers(@Query(ValidationPipe) filterDto: GetUsersFilterDto) {
+  getUsers(
+    @Query(ValidationPipe) filterDto: GetUsersFilterDto,
+  ): Promise<UserResponseDto[]> {
     return this.userService.getUsers(filterDto);
   }
 
   @Get('/:userSeq')
-  getUserByUserSeq(@Param('userSeq') userSeq: number) {
+  getUserByUserSeq(
+    @Param('userSeq', ParseIntPipe) userSeq: number,
+  ): Promise<UserResponseDto> {
     return this.userService.findUserByUserSeq(userSeq);
   }
 
@@ -48,16 +53,19 @@ export class UserController {
   @Patch('/:userSeq')
   async updateUser(
     @Req() req,
-    @Param('userSeq', ParseIntPipe) userSeq: number, // ParseIntPipe를 추가하여 userSeq가 숫자임을 보장
+    @Param('userSeq', ParseIntPipe) userSeq: number,
     @Body(ValidationPipe) updateUserDto: UpdateUserDto,
-  ) {
+  ): Promise<UserUpdateResponseDto> {
     const currentUserSeq = req.user.seq;
     return this.userService.updateUser(userSeq, currentUserSeq, updateUserDto);
   }
 
   @UseGuards(AuthGuard('jwt'))
   @Delete('/:userSeq')
-  deleteUser(@Req() req, @Param('userSeq', ParseIntPipe) userSeq: number) {
+  deleteUser(
+    @Req() req,
+    @Param('userSeq', ParseIntPipe) userSeq: number,
+  ): Promise<UserDeleteResponseDto> {
     const currentUserSeq = req.user.seq;
     return this.userService.deleteUser(userSeq, currentUserSeq);
   }
