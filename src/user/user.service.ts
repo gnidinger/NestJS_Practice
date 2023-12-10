@@ -69,8 +69,12 @@ export class UserService {
   }
 
   async getUsers(filterDto: GetUsersFilterDto): Promise<UserResponseDto[]> {
-    const { userId, username } = filterDto;
+    const { userSeq, userId, username } = filterDto;
     const query = this.userRepository.createQueryBuilder('user');
+
+    if (userSeq !== undefined) {
+      query.andWhere('user.seq = :userSeq', { userSeq });
+    }
 
     if (userId) {
       query.andWhere('user.userId = :userId', { userId });
@@ -81,7 +85,6 @@ export class UserService {
     }
 
     const users = await query.getMany();
-
     return users.map((user) => new UserResponseDto(user));
   }
 
