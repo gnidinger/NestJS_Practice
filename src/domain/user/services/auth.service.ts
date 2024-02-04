@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { UserService } from './user.service';
@@ -30,16 +30,14 @@ export class AuthService {
       loginRequestDto.password,
     );
     if (!user) {
-      return null;
+      throw new UnauthorizedException('Invalid email or password.');
     }
     const payload = { email: user.email, sub: user.id };
-    return {
-      userId: user.id,
-      email: user.email,
-      accessToken: this.jwtService.sign(payload, {
-        secret: this.configService.get('JWT_SECRET'),
-        expiresIn: this.configService.get('JWT_EXPIRATION_TIME'),
-      }),
-    };
+    const accessToken = this.jwtService.sign(payload, {
+      secret: this.configService.get('JWT_SECRET'),
+      expiresIn: this.configService.get('JWT_EXPIRATION_TIME'),
+    });
+
+    return LoginResponseDto.fromUser(user, accessToken);
   }
 }
