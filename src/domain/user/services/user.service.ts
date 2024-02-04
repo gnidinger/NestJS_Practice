@@ -14,6 +14,7 @@ import * as bcrypt from 'bcrypt';
 import { FindOneResponseDto } from '../dtos/find-one-response.dto';
 import { UpdateUserRequestDto } from '../dtos/update-user-request.dto';
 import { UpdateUserResponseDto } from '../dtos/update-user-response.dto';
+import { UserRole } from '../entities/user-role.enum';
 
 @Injectable()
 export class UserService {
@@ -49,6 +50,7 @@ export class UserService {
       email,
       username,
       password: hashedPassword,
+      userRole: UserRole.USER,
     });
 
     // 사용자 저장 및 생성된 사용자 정보 반환 (비밀번호 제외)

@@ -13,6 +13,7 @@ export const typeOrmConfigAsync = {
     database: configService.get('DB_NAME'),
     entities: [__dirname + '/../**/*.entity.{js,ts}'],
     synchronize: configService.get('STAGE') === 'dev', // 예를 들어, 'STAGE' 환경 변수를 사용하여 개발 환경인지 확인
+    dropSchema: configService.get('STAGE') === 'dev',
   }),
   inject: [ConfigService],
 };
