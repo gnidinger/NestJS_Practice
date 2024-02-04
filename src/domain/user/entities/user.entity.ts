@@ -7,18 +7,18 @@ import {
 } from 'typeorm';
 import { UserRole } from './user-role.enum';
 
-@Entity()
+@Entity({ name: 'cp_users' })
 export class User {
-  @PrimaryGeneratedColumn()
+  @PrimaryGeneratedColumn({ name: 'user_id' })
   id: number;
 
-  @Column({ unique: true })
+  @Column({ unique: true, name: 'email' })
   email: string;
 
-  @Column()
+  @Column({ name: 'username' })
   username: string;
 
-  @Column()
+  @Column({ name: 'password' })
   password: string;
 
   @Column({
@@ -29,9 +29,9 @@ export class User {
   })
   userRole: UserRole;
 
-  @CreateDateColumn()
+  @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
 
-  @UpdateDateColumn()
+  @UpdateDateColumn({ name: 'updated_at' })
   updatedAt: Date;
 }
