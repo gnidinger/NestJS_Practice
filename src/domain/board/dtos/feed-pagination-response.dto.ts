@@ -5,4 +5,9 @@ export class FeedPaginationResponseDto {
   totalItems: number;
   totalPages: number;
   currentPage: number;
+  isLastPage: boolean;
+
+  constructor(partial: Partial<FeedPaginationResponseDto>) {
+    Object.assign(this, partial);
+  }
 }

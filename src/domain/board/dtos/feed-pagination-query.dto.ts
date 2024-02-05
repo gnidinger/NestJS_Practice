@@ -1,15 +1,16 @@
 import { Type } from 'class-transformer';
-import { IsOptional, IsPositive, Min } from 'class-validator';
+import { IsInt, IsOptional, Min } from 'class-validator';
 
 export class FeedPaginationQueryDto {
-  @IsOptional()
-  @Type(() => Number) // 클라이언트로부터 받은 값을 숫자로 변환
-  @IsPositive()
+  @Type(() => Number) // 쿼리 파라미터를 숫자로 변환
+  @IsInt()
   @Min(1)
-  page: number = 1;
-
   @IsOptional()
-  @Type(() => Number) // 클라이언트로부터 받은 값을 숫자로 변환
-  @IsPositive()
-  limit: number = 20;
+  page: number = 1; // 기본값은 1
+
+  @Type(() => Number) // 쿼리 파라미터를 숫자로 변환
+  @IsInt()
+  @Min(1)
+  @IsOptional()
+  limit: number = 20; // 기본값은 20
 }

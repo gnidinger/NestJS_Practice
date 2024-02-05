@@ -1,12 +1,12 @@
-export class FeedListResponseDto {
+export class FeedUpdateResponseDto {
   id: number;
   title: string;
-  authorName: string;
+  content: string;
   userId: number;
   createdAt: Date;
   updatedAt: Date;
 
-  constructor(partial: Partial<FeedListResponseDto>) {
+  constructor(partial: Partial<FeedUpdateResponseDto>) {
     Object.assign(this, partial);
   }
 }
