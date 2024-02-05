@@ -1,6 +1,6 @@
 import { User } from '../entities/user.entity';
 
-export class UpdateUserResponseDto {
+export class UserUpdateResponseDto {
   id: number;
   email: string;
   username: string;

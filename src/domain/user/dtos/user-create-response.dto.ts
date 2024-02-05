@@ -1,13 +1,13 @@
 import { User } from '../entities/user.entity';
 
-export class CreateUserResponseDto {
+export class UserCreateResponseDto {
   id: number;
   email: string;
   username: string;
   createdAt: Date;
 
-  static fromEntity(entity: User): CreateUserResponseDto {
-    const dto = new CreateUserResponseDto();
+  static fromEntity(entity: User): UserCreateResponseDto {
+    const dto = new UserCreateResponseDto();
     dto.id = entity.id;
     dto.email = entity.email;
     dto.username = entity.username;

@@ -1,10 +1,11 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Feed } from '../entities/feed.entity';
-import { CreateFeedRequestDto } from '../dtos/create-feed-request.dto';
-import { CreateFeedResponseDto } from '../dtos/create-feed-response.dto';
+import { FeedCreateRequestDto } from '../dtos/feed-create-request.dto';
+import { FeedCreateResponseDto } from '../dtos/feed-create-response.dto';
 import { User } from '../../user/entities/user.entity';
+import { FeedFindOneResponseDto } from '../dtos/feed-find-one-response.dto';
 
 @Injectable()
 export class FeedService {
@@ -15,19 +16,38 @@ export class FeedService {
 
   async createFeed(
     user: User, // 사용자 정보 인자 추가
-    createFeedDto: CreateFeedRequestDto,
-  ): Promise<CreateFeedResponseDto> {
+    createFeedDto: FeedCreateRequestDto,
+  ): Promise<FeedCreateResponseDto> {
     const newFeed = this.feedRepository.create({
       ...createFeedDto,
       user, // 피드 엔티티에 사용자 정보 추가
     });
     const savedFeed = await this.feedRepository.save(newFeed);
 
-    return new CreateFeedResponseDto({
+    return new FeedCreateResponseDto({
       id: savedFeed.id,
       title: savedFeed.title,
       content: savedFeed.content,
       createdAt: savedFeed.createdAt,
+    });
+  }
+
+  async findOneById(id: number): Promise<FeedFindOneResponseDto> {
+    const feed = await this.feedRepository.findOne({
+      where: { id },
+      relations: ['user'],
+    });
+    if (!feed) {
+      throw new NotFoundException(`Feed with ID ${id} not found`);
+    }
+
+    return new FeedFindOneResponseDto({
+      id: feed.id,
+      title: feed.title,
+      content: feed.content,
+      createdAt: feed.createdAt,
+      updatedAt: feed.updatedAt,
+      userId: feed.user.id,
     });
   }
 }

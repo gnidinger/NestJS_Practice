@@ -8,12 +8,12 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from '../entities/user.entity';
-import { CreateUserRequestDto } from '../dtos/create-user-request.dto';
-import { CreateUserResponseDto } from '../dtos/create-user-response.dto';
+import { UserCreateRequestDto } from '../dtos/user-create-request.dto';
+import { UserCreateResponseDto } from '../dtos/user-create-response.dto';
 import * as bcrypt from 'bcrypt';
-import { FindOneResponseDto } from '../dtos/find-one-response.dto';
-import { UpdateUserRequestDto } from '../dtos/update-user-request.dto';
-import { UpdateUserResponseDto } from '../dtos/update-user-response.dto';
+import { UserFindOneResponseDto } from '../dtos/user-find-one-response.dto';
+import { UserUpdateRequestDto } from '../dtos/user-update-request.dto';
+import { UserUpdateResponseDto } from '../dtos/user-update-response.dto';
 import { UserRole } from '../entities/user-role.enum';
 
 @Injectable()
@@ -24,8 +24,8 @@ export class UserService {
   ) {}
 
   async createUser(
-    createUserDto: CreateUserRequestDto,
-  ): Promise<CreateUserResponseDto> {
+    createUserDto: UserCreateRequestDto,
+  ): Promise<UserCreateResponseDto> {
     const { email, username, password, confirmPassword } = createUserDto;
 
     // 중복된 이메일이 있는지 확인
@@ -55,14 +55,14 @@ export class UserService {
 
     // 사용자 저장 및 생성된 사용자 정보 반환 (비밀번호 제외)
     await this.userRepository.save(user);
-    return CreateUserResponseDto.fromEntity(user);
+    return UserCreateResponseDto.fromEntity(user);
   }
 
   async findByEmail(email: string): Promise<User | undefined> {
     return this.userRepository.findOne({ where: { email } });
   }
 
-  async findOneById(id: number): Promise<FindOneResponseDto | undefined> {
+  async findOneById(id: number): Promise<UserFindOneResponseDto | undefined> {
     const user = await this.userRepository.findOneBy({ id });
     if (!user) {
       // 사용자가 존재하지 않는 경우 NotFoundException을 던짐.
@@ -73,7 +73,7 @@ export class UserService {
     return result;
   }
 
-  async findAll(): Promise<FindOneResponseDto[]> {
+  async findAll(): Promise<UserFindOneResponseDto[]> {
     const users = await this.userRepository.find();
     return users.map((user) => ({
       id: user.id,
@@ -84,8 +84,8 @@ export class UserService {
 
   async updateUser(
     id: number,
-    updateUserDto: UpdateUserRequestDto,
-  ): Promise<UpdateUserResponseDto> {
+    updateUserDto: UserUpdateRequestDto,
+  ): Promise<UserUpdateResponseDto> {
     const user = await this.userRepository.findOneBy({ id });
 
     if (!user) {
@@ -99,6 +99,6 @@ export class UserService {
 
     await this.userRepository.save(user);
 
-    return new UpdateUserResponseDto(user);
+    return new UserUpdateResponseDto(user);
   }
 }
