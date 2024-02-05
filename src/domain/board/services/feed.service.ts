@@ -6,6 +6,9 @@ import { FeedCreateRequestDto } from '../dtos/feed-create-request.dto';
 import { FeedCreateResponseDto } from '../dtos/feed-create-response.dto';
 import { User } from '../../user/entities/user.entity';
 import { FeedFindOneResponseDto } from '../dtos/feed-find-one-response.dto';
+import { FeedListResponseDto } from '../dtos/feed-list-response.dto';
+import { FeedPaginationQueryDto } from '../dtos/feed-pagination-query.dto';
+import { FeedPaginationResponseDto } from '../dtos/feed-pagination-response.dto';
 
 @Injectable()
 export class FeedService {
@@ -49,5 +52,26 @@ export class FeedService {
       updatedAt: feed.updatedAt,
       userId: feed.user.id,
     });
+  }
+
+  async findAll(queryDto: FeedPaginationQueryDto): Promise<any> {
+    const { page, limit } = queryDto;
+    const [feeds, total] = await this.feedRepository.findAndCount({
+      skip: (page - 1) * limit,
+      take: limit,
+    });
+
+    const lastPage = Math.ceil(total / limit);
+    const isLastPage = page >= lastPage;
+
+    const responseData = feeds.map((feed) => new FeedListResponseDto(feed));
+
+    return {
+      data: responseData,
+      total,
+      page,
+      lastPage,
+      isLastPage,
+    };
   }
 }
