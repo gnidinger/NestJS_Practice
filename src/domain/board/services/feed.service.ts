@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Feed } from '../entities/feed.entity';
@@ -9,6 +13,9 @@ import { FeedFindOneResponseDto } from '../dtos/feed-find-one-response.dto';
 import { FeedPaginationResponseDto } from '../dtos/feed-pagination-response.dto';
 import { FeedPaginationQueryDto } from '../dtos/feed-pagination-query.dto';
 import { FeedListResponseDto } from '../dtos/feed-list-response.dto';
+import { FeedUpdateRequestDto } from '../dtos/feed-update-request.dto';
+import { FeedUpdateResponseDto } from '../dtos/feed-update-response.dto';
+import { FeedDeleteResponseDto } from '../dtos/feed-delete-response.dto';
 
 @Injectable()
 export class FeedService {
@@ -90,5 +97,56 @@ export class FeedService {
       currentPage: page,
       isLastPage,
     });
+  }
+
+  async updateFeed(
+    id: number,
+    user: User,
+    updateFeedDto: FeedUpdateRequestDto,
+  ): Promise<FeedUpdateResponseDto> {
+    const feed = await this.feedRepository.findOne({
+      where: { id },
+      relations: ['user'],
+    });
+
+    if (!feed) {
+      throw new NotFoundException(`Feed with ID "${id}" not found`);
+    }
+
+    if (feed.user.id !== user.id) {
+      throw new UnauthorizedException(`You can only modify your own posts`);
+    }
+
+    feed.title = updateFeedDto.title;
+    feed.content = updateFeedDto.content;
+    await this.feedRepository.save(feed);
+
+    return new FeedUpdateResponseDto({
+      id: feed.id,
+      title: feed.title,
+      content: feed.content,
+      userId: feed.user.id,
+      createdAt: feed.createdAt,
+      updatedAt: feed.updatedAt,
+    });
+  }
+
+  async deleteFeed(id: number, user: User): Promise<FeedDeleteResponseDto> {
+    const feed = await this.feedRepository.findOne({
+      where: { id },
+      relations: ['user'], // 사용자 정보도 함께 로드
+    });
+
+    if (!feed) {
+      throw new NotFoundException(`Feed with ID "${id}" not found`);
+    }
+
+    if (feed.user.id !== user.id) {
+      throw new UnauthorizedException(`You can only delete your own posts`);
+    }
+
+    await this.feedRepository.remove(feed);
+
+    return new FeedDeleteResponseDto(id, true);
   }
 }
