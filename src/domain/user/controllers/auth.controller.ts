@@ -7,7 +7,7 @@ import { LoginResponseDto } from '../dtos/login-response.dto';
 export class AuthController {
   constructor(private authService: AuthService) {}
 
-  @Post('login')
+  @Post('/login')
   @HttpCode(HttpStatus.OK)
   async login(
     @Body() loginRequestDto: LoginRequestDto,
