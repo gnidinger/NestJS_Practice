@@ -9,7 +9,6 @@ import {
   Param,
   ParseIntPipe,
   Query,
-  UsePipes,
   ValidationPipe,
 } from '@nestjs/common';
 import { FeedCreateRequestDto } from '../dtos/feed-create-request.dto';
@@ -19,6 +18,7 @@ import { User } from '../../user/entities/user.entity';
 import { AuthUser } from '../../user/decorators/auth-user.decorator';
 import { AuthGuard } from '@nestjs/passport';
 import { FeedFindOneResponseDto } from '../dtos/feed-find-one-response.dto';
+import { FeedPaginationResponseDto } from '../dtos/feed-pagination-response.dto';
 import { FeedPaginationQueryDto } from '../dtos/feed-pagination-query.dto';
 
 @Controller('/api/feed')
@@ -43,8 +43,9 @@ export class FeedController {
   }
 
   @Get('/')
-  @UsePipes(new ValidationPipe({ transform: true })) // 요청에서 받은 쿼리 파라미터를 DTO로 변환
-  async findAll(@Query() queryDto: FeedPaginationQueryDto) {
+  async findAll(
+    @Query(ValidationPipe) queryDto: FeedPaginationQueryDto,
+  ): Promise<FeedPaginationResponseDto> {
     return this.feedService.findAll(queryDto);
   }
 }

@@ -6,9 +6,9 @@ import { FeedCreateRequestDto } from '../dtos/feed-create-request.dto';
 import { FeedCreateResponseDto } from '../dtos/feed-create-response.dto';
 import { User } from '../../user/entities/user.entity';
 import { FeedFindOneResponseDto } from '../dtos/feed-find-one-response.dto';
-import { FeedListResponseDto } from '../dtos/feed-list-response.dto';
-import { FeedPaginationQueryDto } from '../dtos/feed-pagination-query.dto';
 import { FeedPaginationResponseDto } from '../dtos/feed-pagination-response.dto';
+import { FeedPaginationQueryDto } from '../dtos/feed-pagination-query.dto';
+import { FeedListResponseDto } from '../dtos/feed-list-response.dto';
 
 @Injectable()
 export class FeedService {
@@ -48,30 +48,47 @@ export class FeedService {
       id: feed.id,
       title: feed.title,
       content: feed.content,
+      userId: feed.user.id,
+      authorName: feed.user.username,
       createdAt: feed.createdAt,
       updatedAt: feed.updatedAt,
-      userId: feed.user.id,
     });
   }
 
-  async findAll(queryDto: FeedPaginationQueryDto): Promise<any> {
-    const { page, limit } = queryDto;
-    const [feeds, total] = await this.feedRepository.findAndCount({
-      skip: (page - 1) * limit,
+  async findAll(
+    queryDto: FeedPaginationQueryDto,
+  ): Promise<FeedPaginationResponseDto> {
+    const page = parseInt(queryDto.page as any, 10) || 1;
+    const limit = parseInt(queryDto.limit as any, 10) || 20;
+    const skip = (page - 1) * limit;
+
+    const [results, total] = await this.feedRepository.findAndCount({
+      relations: ['user'],
+      skip: skip,
       take: limit,
+      order: { createdAt: 'DESC' },
     });
 
-    const lastPage = Math.ceil(total / limit);
-    const isLastPage = page >= lastPage;
+    const totalPages = Math.ceil(total / limit);
+    const isLastPage = page >= totalPages;
 
-    const responseData = feeds.map((feed) => new FeedListResponseDto(feed));
+    const data = results.map(
+      (feed) =>
+        new FeedListResponseDto({
+          id: feed.id,
+          title: feed.title,
+          authorName: feed.user.username,
+          createdAt: feed.createdAt,
+          updatedAt: feed.updatedAt,
+        }),
+    );
 
-    return {
-      data: responseData,
-      total,
-      page,
-      lastPage,
+    return new FeedPaginationResponseDto({
+      data,
+      totalItems: total,
+      totalPages,
+      currentPage: page,
       isLastPage,
-    };
+    });
   }
 }
